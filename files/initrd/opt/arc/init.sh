@@ -5,6 +5,21 @@ set -e
 
 . "${ARC_PATH}/include/functions.sh"
 
+echo "Mounting tmpfs for RAM root..."
+mkdir /ramroot
+mount -t tmpfs -o size=90% none /ramroot
+
+echo "Copying rootfs to RAM..."
+cp -a /mnt/root/* /ramroot/
+
+echo "Switching root to RAM..."
+mkdir /ramroot/proc /ramroot/sys /ramroot/dev
+mount --move /proc /ramroot/proc
+mount --move /sys /ramroot/sys
+mount --move /dev /ramroot/dev
+
+exec switch_root /ramroot /sbin/init
+
 # Get Loader Disk Bus
 [ -z "${LOADER_DISK}" ] && die "Loader Disk not found!"
 checkBootLoader || die "The loader is corrupted, please rewrite it!"
